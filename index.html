@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>TruthLens – evidence workstation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#e8eef2;--card:#fff;--ink:#17242e;--mute:#566673;--line:#cdd8df;--acc:#0e6b8a;--flag:#b8204f;--ok:#2d7a4f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1a22;--card:#152632;--ink:#e3edf3;--mute:#9db0bd;--line:#29404f;--acc:#5cc3e3;--flag:#ff7a9e;--ok:#6fd49b}}
+:root[data-theme=dark]{--bg:#0e1a22;--card:#152632;--ink:#e3edf3;--mute:#9db0bd;--line:#29404f;--acc:#5cc3e3;--flag:#ff7a9e;--ok:#6fd49b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+h1,h2{font-family:"Iowan Old Style",Georgia,serif;font-weight:600;margin:0}
+h1{font-size:2.2rem}h2{font-size:1.35rem;margin-bottom:10px}
+.lead{color:var(--mute);max-width:62ch;margin:6px 0 18px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin:16px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 200px}
+input[type=text]{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:14px 0}
+.slot{border:2px dashed var(--line);border-radius:8px;padding:18px 10px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:4px;overflow-wrap:anywhere}
+.slot span{color:var(--mute);font-size:.9rem}.slot:hover,.slot:focus-within{border-color:var(--acc)}
+.slot.on{border-style:solid;border-color:var(--ok)}
+button{font:inherit;padding:10px 18px;border-radius:6px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+@media(prefers-color-scheme:dark){button{color:#06222d}}
+button.alt{background:transparent;color:var(--acc)}button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,.slot:focus-within{outline:3px solid var(--acc);outline-offset:2px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.wrap{overflow-x:auto}.h{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;overflow-wrap:anywhere}
+.flag{color:var(--flag);font-weight:600}.clear{color:var(--ok)}
+.viz{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.viz figure{margin:0}.viz figcaption{font-size:.85rem;color:var(--mute);margin-top:4px}
+canvas{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#000}
+.bars{display:flex;align-items:flex-end;gap:3px;height:90px;border-bottom:1px solid var(--line)}.bars i{flex:1;background:var(--acc);min-width:3px}.bars i.f{background:var(--flag)}
+.set{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.set b{font-family:"Iowan Old Style",Georgia,serif;font-size:1.4rem;font-weight:600;padding:8px 16px;border:2px solid var(--ink);border-radius:30px}
+.note{color:var(--mute);font-size:.9rem}
+details pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.75rem;max-height:320px;overflow:auto;background:var(--bg);padding:10px;border-radius:6px}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}nav button{padding:7px 12px;background:transparent;color:var(--acc)}nav button[aria-pressed=true]{background:var(--acc);color:#fff}
+@media(prefers-color-scheme:dark){nav button[aria-pressed=true]{color:#06222d}}
+.panel[hidden]{display:none}.bd{display:inline-block;padding:1px 8px;border-radius:12px;font-size:.78rem;font-weight:600;border:1px solid}
+.bd.confirmed{color:var(--ok)}.bd.suspicious{color:var(--flag)}.bd.info,.bd.manual{color:var(--mute)}
+textarea{width:100%;min-height:120px;padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:.85rem ui-monospace,Menlo,Consolas,monospace}
+svg.g{width:100%;aspect-ratio:5/3;border:1px solid var(--line);border-radius:8px;background:var(--bg);touch-action:none}
+.chat p{margin:6px 0;padding:8px 10px;border-radius:8px;background:var(--bg);white-space:pre-wrap;overflow-wrap:anywhere}.chat p.me{background:transparent;border:1px solid var(--line)}
+@media print{.noprint{display:none}body{background:#fff}section{break-inside:avoid}}
+</style></head><body><main>
+<h1>TruthLens</h1>
+<p class="lead">Upload your own evidence. TruthLens runs transparent checks in your browser, compares signals across files, and reports a set of possible outcomes instead of a verdict. Files never leave your device.</p>
+
+<nav id="tabs" class="noprint" aria-label="Modules"></nav><div class="panel" id="p-media"><section class="noprint"><h2>1. Ingest evidence</h2>
+<div class="row"><div><label>Case reference<input type="text" id="cid"></label></div><div><label>Examiner name<input type="text" id="who" placeholder="Your name"></label></div></div>
+<div class="slots" id="slots"></div>
+<p class="note">Add any combination. Each file is hashed (SHA-256) the moment it is added, and the original is never modified.</p>
+<button id="go" disabled>Analyze evidence</button> <span id="err" class="flag"></span></section>
+
+<div id="out"></div></div><div id="mods"></div>
+
+<section><h2>Evidence and analysis ledger</h2>
+<p class="note">Every step is chained to the previous one by hash. Any later edit to the history breaks the chain.</p>
+<div class="wrap"><table><thead><tr><th>Type</th><th>File</th><th>Size</th><th>SHA-256</th></tr></thead><tbody id="ev"><tr><td colspan="4" class="note">No evidence added yet.</td></tr></tbody></table></div>
+<h2 style="margin-top:16px">Analysis history</h2>
+<div class="wrap"><table><thead><tr><th>#</th><th>Time (UTC)</th><th>Action</th><th>Detail</th><th>Chain hash</th></tr></thead><tbody id="lg"></tbody></table></div>
+<p class="noprint" style="margin-top:10px"><button class="alt" id="ver">Verify chain</button> <button class="alt" id="prn">Print report</button> <span id="vr"></span></p>
+<details class="noprint"><summary>Machine-readable report (JSON)</summary><pre id="js">Run an analysis first.</pre></details></section>
+</main>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const E={},ledger=[];let F=[],C=[],SET=[],lastReport=null;
+$('#cid').value='TL-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+async function sha(buf){const h=await crypto.subtle.digest('SHA-256',buf);return[...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function log(action,detail){const prev=ledger.length?ledger[ledger.length-1].hash:'0'.repeat(64),t=new Date().toISOString().slice(0,19).replace('T',' ');
+ const hash=await sha(new TextEncoder().encode(prev+'|'+action+'|'+detail+'|'+t));ledger.push({n:ledger.length+1,t,action,detail,prev,hash});
+ $('#lg').innerHTML=ledger.map(l=>`<tr><td>${l.n}</td><td>${l.t}</td><td>${esc(l.action)}</td><td>${esc(l.detail)}</td><td class="h">${l.hash.slice(0,16)}…</td></tr>`).join('')}
+$('#ver').onclick=async()=>{let ok=true,p='0'.repeat(64);for(const l of ledger){const h=await sha(new TextEncoder().encode(p+'|'+l.action+'|'+l.detail+'|'+l.t));if(h!==l.hash||l.prev!==p){ok=false;break}p=l.hash}
+ $('#vr').innerHTML=ok?'<span class="clear">Chain intact ('+ledger.length+' entries)</span>':'<span class="flag">Chain broken</span>'};
+$('#prn').onclick=()=>window.print();
+const T=[['image','Image','image/*'],['video','Video','video/*'],['audio','Audio','audio/*'],['text','Text or transcript','.txt,.md,.srt,.vtt']];
+$('#slots').innerHTML=T.map(([k,n,a])=>`<label class="slot" id="s-${k}"><input type="file" accept="${a}" hidden><b>${n}</b><span>Drop a file or click</span></label>`).join('');
+T.forEach(([k])=>{const s=$('#s-'+k),i=s.querySelector('input');i.onchange=()=>ingest(k,i.files[0]);s.ondragover=e=>e.preventDefault();s.ondrop=e=>{e.preventDefault();ingest(k,e.dataTransfer.files[0])}});
+async function ingest(k,f){if(!f)return;const buf=await f.arrayBuffer(),h=await sha(buf);E[k]={f,buf,h};const s=$('#s-'+k);s.classList.add('on');s.querySelector('span').textContent=f.name;
+ await log('INGEST',`${k}: ${f.name}, ${f.size} bytes, sha256 ${h.slice(0,12)}…`);
+ $('#ev').innerHTML=Object.entries(E).map(([t,e])=>`<tr><td>${t}</td><td>${esc(e.f.name)}</td><td>${(e.f.size/1024).toFixed(1)} KB</td><td class="h">${e.h}</td></tr>`).join('');$('#go').disabled=false}
+function add(mod,ind,where,flag,str,why,alt){F.push({modality:mod,indicator:ind,location:where,flagged:flag,strength:str,why,benign:alt||''})}
+const viz=h=>$('#viz').insertAdjacentHTML('beforeend',h);
+/* ---------- IMAGE ---------- */
+async function ela(cv,q){const b=await new Promise(r=>cv.toBlob(r,'image/jpeg',q)),bm=await createImageBitmap(b),w=cv.width,h=cv.height,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(bm,0,0);
+ const a=cv.getContext('2d').getImageData(0,0,w,h),d=x.getImageData(0,0,w,h),o=x.createImageData(w,h),B=16,bw=Math.ceil(w/B),bh=Math.ceil(h/B),sum=new Float64Array(bw*bh),cnt=new Float64Array(bw*bh);
+ for(let i=0;i<a.data.length;i+=4){const df=(Math.abs(a.data[i]-d.data[i])+Math.abs(a.data[i+1]-d.data[i+1])+Math.abs(a.data[i+2]-d.data[i+2]))/3,p=i/4,bi=Math.floor(Math.floor(p/w)/B)*bw+Math.floor((p%w)/B);sum[bi]+=df;cnt[bi]++;const v=Math.min(255,df*20);o.data[i]=o.data[i+1]=o.data[i+2]=v;o.data[i+3]=255}
+ x.putImageData(o,0,0);const m=Array.from(sum,(s,i)=>s/cnt[i]),mean=m.reduce((a,b)=>a+b)/m.length,sd=Math.sqrt(m.reduce((a,b)=>a+(b-mean)**2,0)/m.length),mx=m.indexOf(Math.max(...m));
+ return{c,cv:mean?sd/mean:0,hot:[(mx%bw)*B,Math.floor(mx/bw)*B,B]}}
+async function image(){const bm=await createImageBitmap(E.image.f),s=Math.min(1,800/bm.width),cv=document.createElement('canvas');cv.width=Math.round(bm.width*s);cv.height=Math.round(bm.height*s);cv.getContext('2d').drawImage(bm,0,0,cv.width,cv.height);
+ const r=await ela(cv,.9),x=r.c.getContext('2d');const [hx,hy,hs]=r.hot,flag=r.cv>1.5;
+ if(flag){x.strokeStyle='#ff2d6f';x.lineWidth=3;x.strokeRect(hx-8,hy-8,hs+16,hs+16)}
+ const b=await new Promise(q=>cv.toBlob(q,'image/jpeg',.75)),c1=document.createElement('canvas');c1.width=cv.width;c1.height=cv.height;c1.getContext('2d').drawImage(await createImageBitmap(b),0,0);const r2=await ela(c1,.9),survives=r2.cv>1.5;
+ viz(`<div><h2>Image</h2><div class="viz"><figure id="f1"><figcaption>Original (scaled)</figcaption></figure><figure id="f2"><figcaption>Error level map, hottest area outlined when flagged</figcaption></figure></div></div>`);
+ $('#f1').prepend(cv);$('#f2').prepend(r.c);
+ add('image','Uneven compression error (ELA)',flag?`block at x=${hx}, y=${hy}`:'whole image',flag,'low',`Error level variation is ${r.cv.toFixed(2)} (flag above 1.50). Edited or pasted regions often recompress differently from the rest.`,'Sharp edges, text and high-contrast areas naturally produce uneven ELA. This is a weak heuristic and often misses AI-generated images.');
+ add('image','Robustness after recompression','whole image',flag&&!survives,'info',flag?(survives?'The ELA flag survived a second compression at quality 75, so it is not just a fragile artifact.':'The ELA flag disappeared after recompression at quality 75, so treat it as unreliable.'):`Recompressed score ${r2.cv.toFixed(2)}; no flag to test.`,'Social apps recompress uploads, which can hide or create ELA patterns.');
+ const t=new TextDecoder('latin1').decode(E.image.buf.slice(0,262144)),sw=t.match(/Photoshop|Adobe|GIMP|Lightroom|Stable Diffusion|Midjourney|DALL.?E|Firefly|Canva|ffmpeg/i),c2=/c2pa|jumbf/i.test(t),ex=/Exif\0\0/.test(t),dt=t.match(/(\d{4}):(\d\d):\d\d \d\d:\d\d:\d\d/);
+ E.image.year=dt?dt[1]:null;
+ add('image','Editing or generator software tag','file metadata',!!sw,sw?'medium':'info',sw?`Metadata mentions “${sw[0]}”.`:'No editing or generator software named in the first 256 KB.','Legitimate edits such as cropping or colour correction also leave these tags.');
+ add('image','Camera metadata (EXIF)','file header',!ex,'low',ex?'EXIF block present'+(dt?`; capture time ${dt[0].replace(/^(\d{4}):(\d\d):(\d\d)/,'$1-$2-$3')}.`:'.'):'No EXIF block found.','Messaging and social apps strip EXIF automatically.');
+ add('image','Content credentials (C2PA)','file header',false,'info',c2?'A C2PA / JUMBF marker was found. Its signature still needs validating with a C2PA tool.':'No C2PA marker found. This does not mean the image is fake.','')}
+/* ---------- VIDEO ---------- */
+async function video(){const v=document.createElement('video');v.muted=true;v.preload='auto';v.src=URL.createObjectURL(E.video.f);
+ await new Promise((a,b)=>{v.onloadeddata=a;v.onerror=()=>b(new Error('This browser could not decode the video.'))});if(!isFinite(v.duration)||v.duration<1)throw new Error('Video too short or unreadable.');
+ const n=Math.min(30,Math.max(6,Math.floor(v.duration*2))),c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d',{willReadFrequently:true});let prev=null;const d=[],ts=[];
+ for(let i=0;i<n;i++){const t=v.duration*(i+.5)/n,p=new Promise(r=>v.onseeked=r);v.currentTime=t;await p;x.drawImage(v,0,0,32,32);const px=x.getImageData(0,0,32,32).data,g=[];for(let j=0;j<px.length;j+=4)g.push((px[j]+px[j+1]+px[j+2])/3);if(prev){d.push(g.reduce((s,y,k)=>s+Math.abs(y-prev[k]),0)/g.length);ts.push(t)}prev=g}
+ const m=d.reduce((a,b)=>a+b)/d.length,sd=Math.sqrt(d.reduce((a,b)=>a+(b-m)**2,0)/d.length)||1,z=d.map(q=>(q-m)/sd),mx=Math.max(...d);
+ viz(`<div><h2>Video</h2><p class="note">Frame-to-frame change across ${n} sampled moments. Red bars are outliers.</p><div class="bars">${d.map((q,i)=>`<i class="${z[i]>2?'f':''}" style="height:${Math.max(3,q/mx*100)}%" title="${ts[i].toFixed(1)} s"></i>`).join('')}</div></div>`);
+ const hits=ts.filter((t,i)=>z[i]>2);
+ add('video','Sudden visual discontinuity',hits.length?hits.map(t=>t.toFixed(1)+' s').join(', '):'no outliers',hits.length>0,'low',hits.length?'Frame change jumps well above the clip’s normal level at these times.':'Sampled frames change smoothly.','Scene cuts, camera shake and edited montages cause the same pattern. Sampling is sparse and cannot prove temporal consistency.')}
+/* ---------- AUDIO ---------- */
+function fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]]}}
+ for(let l=2;l<=n;l<<=1){const a=-2*Math.PI/l,wr=Math.cos(a),wi=Math.sin(a);for(let i=0;i<n;i+=l){let cr=1,ci=0;for(let k=0;k<l/2;k++){const u=i+k,v=u+l/2,xr=re[v]*cr-im[v]*ci,xi=re[v]*ci+im[v]*cr;re[v]=re[u]-xr;im[v]=im[u]-xi;re[u]+=xr;im[u]+=xi;const t=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=t}}}}
+async function audio(){const ac=new AudioContext(),ab=await ac.decodeAudioData(E.audio.buf.slice(0));ac.close();const d=ab.getChannelData(0),sr=ab.sampleRate;let N=8192;while(N*2<=Math.min(d.length,65536))N*=2;
+ if(d.length<8192){add('audio','Spectrum analysis','n/a',false,'info','Recording is too short to analyze.','');return}
+ const mag=new Float64Array(N/2),W=Math.min(8,Math.floor(d.length/N)),hop=W>1?Math.floor((d.length-N)/(W-1)):0;
+ for(let w=0;w<W;w++){const re=new Float64Array(N),im=new Float64Array(N);for(let i=0;i<N;i++)re[i]=d[w*hop+i]*(.5-.5*Math.cos(2*Math.PI*i/N));fft(re,im);for(let k=0;k<N/2;k++)mag[k]+=Math.hypot(re[k],im[k])/W}
+ const db=Array.from(mag,m=>20*Math.log10(m+1e-9)),hz=sr/N,mn=Math.min(...db),mxv=Math.max(...db);
+ const cv=document.createElement('canvas');cv.width=600;cv.height=130;const x=cv.getContext('2d');x.fillStyle='#071';x.fillStyle='#0b1d26';x.fillRect(0,0,600,130);x.strokeStyle='#5cc3e3';x.beginPath();
+ for(let i=0;i<600;i++){const k=Math.floor(i/600*N/2),y=130-((db[k]-mn)/(mxv-mn))*125;i?x.lineTo(i,y):x.moveTo(i,y)}x.stroke();
+ viz(`<div><h2>Audio</h2><figure id="fa" style="margin:0"><figcaption>Average spectrum, 0 to ${(sr/2000).toFixed(1)} kHz</figcaption></figure></div>`);$('#fa').prepend(cv);
+ const med=a=>[...a].sort((p,q)=>p-q)[a.length>>1],pk=f=>{const lo=Math.round((f-.6)/hz),hi=Math.round((f+.6)/hz);let m=-1e9;for(let k=lo;k<=hi;k++)m=Math.max(m,db[k]);const s=[];for(let k=Math.round((f-8)/hz);k<=Math.round((f+8)/hz);k++)if(Math.abs(k*hz-f)>1.5)s.push(db[k]);return m-med(s)};
+ if(N>=32768){const p50=pk(50),p60=pk(60),g=Math.max(p50,p60)>8?(p50>p60?50:60):0;E.audio.grid=g;
+  add('audio','Mains hum frequency (ENF grid)',g?`${g} Hz peak`:'no hum peak',false,'info',g?`A mains hum near ${g} Hz stands ${Math.max(p50,p60).toFixed(0)} dB above its surroundings, which suggests the recording was made on a ${g} Hz power grid.`:'No clear 50 or 60 Hz hum. Battery-powered or heavily filtered recordings have none, so this check is inconclusive.','');}
+ else add('audio','Mains hum frequency (ENF grid)','n/a',false,'info','Recording is too short for hum analysis (needs about 1.5 seconds at 44.1 kHz).','');
+ let best=0,bf=0;for(let f=6000;f+2000<sr/2;f+=1000){const bm=f=>{let s=0,c=0;for(let k=Math.round(f/hz);k<Math.round((f+1000)/hz);k++){s+=db[k];c++}return s/c},dr=bm(f)-bm(f+1000);if(dr>best){best=dr;bf=f+1000}}
+ add('audio','Sharp high-frequency cutoff',best>0?`near ${(bf/1000).toFixed(0)} kHz`:'n/a',best>30,'low',best>30?`Energy falls ${best.toFixed(0)} dB within 1 kHz near ${(bf/1000).toFixed(0)} kHz. Some speech synthesis pipelines band-limit audio this way.`:'No abrupt spectral drop found.','MP3/AAC encoders, phone calls and low-pass filters produce the same cutoff.')}
+/* ---------- TEXT ---------- */
+const G50='india|bengaluru|bangalore|delhi|mumbai|chennai|london|united kingdom|uk|germany|berlin|paris|france|geneva|switzerland|spain|italy|rome|australia|sydney|china|beijing|singapore|dubai',G60='usa|united states|new york|washington|california|texas|canada|toronto|mexico|los angeles|chicago|taiwan|philippines';
+async function text(){const t=await E.text.f.text(),re=g=>new RegExp('\\b('+g+')\\b','gi'),p50=t.match(re(G50))||[],p60=t.match(re(G60))||[],yrs=[...new Set(t.match(/\b(19|20)\d\d\b/g)||[])],wx=[...new Set((t.match(/\b(rain|downpour|storm|snow|sunny|cloudy|fog|night|daylight)\b/gi)||[]).map(s=>s.toLowerCase()))],tm=t.match(/\b\d{1,2}[:.]\d{2}\s?(am|pm)?\b/gi)||[];
+ E.text.grid=p50.length>p60.length?50:p60.length>p50.length?60:0;E.text.yrs=yrs;
+ viz(`<div><h2>Text claims</h2><p class="note">${t.length} characters read. Places: ${esc([...new Set([...p50,...p60])].join(', ')||'none found')}. Years: ${esc(yrs.join(', ')||'none')}. Times: ${esc(tm.slice(0,5).join(', ')||'none')}. Weather or light words: ${esc(wx.join(', ')||'none')}.</p></div>`);
+ add('text','Checkable claims extracted','transcript',false,'info',`${[...new Set([...p50,...p60])].length} place(s), ${yrs.length} year(s), ${wx.length} weather or light term(s).`,'');
+ if(wx.length)add('text','Weather or light claim needs a human check',wx.join(', '),false,'info','The text describes conditions that this tool cannot confirm from the media. Compare with the footage or weather records.','')}
+/* ---------- CORRELATE + REPORT ---------- */
+function correlate(){C=[];const a=E.audio&&E.audio.grid,t=E.text&&E.text.grid;
+ if(a&&t){const bad=a!==t;C.push({between:'audio ↔ text',status:bad?'contradicts':'supports',note:`Audio hum suggests a ${a} Hz grid; the text names places that use ${t} Hz.`+(bad?' Recordings can be made elsewhere than described, or the text may refer to another place.':'')})}
+ else if(E.audio&&E.text)C.push({between:'audio ↔ text',status:'inconclusive',note:'No usable hum or no recognizable place names, so location was not compared.'});
+ if(E.image&&E.image.year&&E.text&&E.text.yrs.length){const bad=!E.text.yrs.includes(E.image.year);C.push({between:'image ↔ text',status:bad?'contradicts':'supports',note:`Image metadata says ${E.image.year}; the text mentions ${E.text.yrs.join(', ')}.`})}
+ const fm=[...new Set(F.filter(f=>f.flagged).map(f=>f.modality))];if(fm.length>1)C.push({between:fm.join(' + '),status:'supports',note:'Independent indicators appear in more than one media type, which strengthens concern but still does not prove manipulation.'});
+ if(!C.length)C.push({between:'all',status:'inconclusive',note:'Add more than one media type to enable cross-checks.'})}
+function decide(){const mods=Object.keys(E).length,fl=F.filter(f=>f.flagged),fm=new Set(fl.map(f=>f.modality)).size,con=C.filter(c=>c.status==='contradicts').length,score=fm+con;
+ let s=score===0?['No indicators found']:score===1?['Inconclusive','Manipulation indicators']:['Manipulation indicators'];
+ if(mods<2&&!s.includes('Inconclusive'))s.push('Inconclusive');if(F.some(f=>f.indicator==='Robustness after recompression'&&f.flagged)&&!s.includes('Inconclusive'))s.push('Inconclusive');return s}
+function report(){const cls=f=>f.flagged?'flag':'clear';
+ $('#out').insertAdjacentHTML('beforeend',`<section><h2>3. Cross-modal comparison</h2><ul>${C.map(c=>`<li><b class="${c.status==='contradicts'?'flag':c.status==='supports'?'clear':''}">${c.status}</b> (${esc(c.between)}): ${esc(c.note)}</li>`).join('')}</ul></section>
+<section><h2>4. Review: what was found</h2>
+<p>Possible outcomes given this evidence:</p><div class="set">${SET.map(s=>`<b>${s}</b>`).join('')}</div>
+<p class="note">The set widens when evidence is thin or a flag is fragile, and narrows only when independent signals agree. It is never a final verdict.</p>
+<div class="wrap"><table><thead><tr><th>Type</th><th>Indicator</th><th>Where</th><th>Result</th><th>Why, and harmless explanations</th></tr></thead><tbody>${F.map(f=>`<tr><td>${f.modality}</td><td>${esc(f.indicator)}</td><td>${esc(f.location)}</td><td class="${cls(f)}">${f.flagged?'Flagged ('+f.strength+')':'Not flagged'}</td><td>${esc(f.why)}${f.benign&&f.flagged?'<br><span class="note">Could also be: '+esc(f.benign)+'</span>':''}</td></tr>`).join('')}</tbody></table></div></section>
+<section><h2>5. Report summary and next checks</h2><p>${F.filter(f=>f.flagged).length} of ${F.length} checks flagged across ${Object.keys(E).length} media type(s). Examiner: ${esc($('#who').value||'not entered')}. Case ${esc($('#cid').value)}.</p>
+<p><b>Limits:</b> these are simple browser-side heuristics, not trained deepfake detectors. Results can be wrong in both directions, especially for modern AI-generated media.</p>
+<ul><li>Obtain the original device file or earliest upload, not a re-share.</li><li>Check any weather, place or time claims against independent records.</li><li>Have a qualified examiner repeat flagged checks with specialist tools.</li><li>Validate any C2PA signature with an official verifier.</li></ul></section>`);
+ lastReport={case:$('#cid').value,examiner:$('#who').value,generatedUTC:new Date().toISOString(),evidence:Object.entries(E).map(([t,e])=>({type:t,name:e.f.name,bytes:e.f.size,sha256:e.h})),findings:F,crossModal:C,possibleOutcomes:SET,ledger}}
+$('#go').onclick=async()=>{$('#err').textContent='';$('#go').disabled=true;F=[];C=[];$('#out').innerHTML='<section><h2>2. Analysis</h2><div id="viz"></div></section>';await log('ANALYZE','started on '+Object.keys(E).join(', '));
+ for(const [k,fn] of [['image',image],['video',video],['audio',audio],['text',text]]){if(!E[k])continue;try{await fn();await log('ANALYZE',k+' checks complete')}catch(e){$('#err').textContent=k+': '+e.message;await log('ERROR',k+': '+e.message)}}
+ correlate();SET=decide();report();await log('REPORT','outcomes: '+SET.join(' / '));lastReport.ledger=ledger;$('#js').textContent=JSON.stringify(lastReport,null,1);$('#go').disabled=false;$('#out').scrollIntoView({behavior:'smooth'})};
+/*PURE*/
+const lev=(a,b)=>{const m=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=m[0];m[0]=i;for(let j=1;j<=b.length;j++){const t=m[j];m[j]=Math.min(m[j]+1,m[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return m[b.length]};
+const BRANDS=['paypal','google','microsoft','apple','amazon','facebook','netflix','instagram','linkedin','dropbox','github','binance','coinbase','hdfcbank','icicibank','paytm'],TLD_BAD=['zip','mov','xyz','top','tk','ml','ga','cf','gq','click','work','support','loan'],SHORT=['bit.ly','tinyurl.com','t.co','goo.gl','is.gd','ow.ly','rb.gy','cutt.ly'];
+function scanUrl(raw){let u;try{u=new URL(raw.trim())}catch(e){return{error:'Not a valid absolute URL. Include http:// or https://'}}
+ if(!/^https?:$/.test(u.protocol))return{error:'Only http and https URLs are supported.'}
+ const h=u.hostname.toLowerCase(),L=h.split('.'),tld=L[L.length-1],core=L.length>1?L[L.length-2]:h,sus=[],pq=u.pathname+u.search,ip=/^(\d{1,3}\.){3}\d{1,3}$/.test(h)||h.startsWith('['),sub=s=>s.replace(/0/g,'o').replace(/1/g,'l').replace(/3/g,'e'),hn=sub(h),norm=sub(core).replace(/rn/g,'m').replace(/-/g,'');
+ if(u.protocol==='http:')sus.push('Unencrypted HTTP');if(ip)sus.push('Host is a raw IP address');
+ if(u.username||u.password)sus.push('Text before the @ is decoration; the real host is '+h);
+ if(h.includes('xn--'))sus.push('Punycode host, may contain look-alike characters');
+ if(SHORT.includes(h))sus.push('URL shortener hides the real destination');
+ if(TLD_BAD.includes(tld))sus.push('TLD .'+tld+' is often abused (weak signal)');
+ if(L.length>4&&!ip)sus.push('Unusually deep subdomain chain ('+L.length+' labels)');
+ if(!ip)for(const b of BRANDS){if(core===b)break;if(hn.includes(b)||(norm.length>=5&&lev(norm,b)<=1)){sus.push('Resembles the brand “'+b+'” but the registered domain is '+L.slice(-2).join('.'));break}}
+ if(sus.length&&/login|signin|verify|secure|update|confirm|password|wallet/i.test(pq+h))sus.push('Account-themed wording combined with other signals');
+ if(raw.length>150)sus.push('Very long URL');if(/%(?:2f|40|3a)/i.test(pq))sus.push('Encoded slash, at or colon in the path');
+ return{host:h,facts:[['scheme',u.protocol.replace(':','')],['host',h],['path',pq||'/']],sus}}
+function parseHeaders(raw){const H=[];for(const l of raw.replace(/\r/g,'').split('\n')){if(/^\s/.test(l)&&H.length)H[H.length-1][1]+=' '+l.trim();else{const i=l.indexOf(':');if(i>0&&/^[\w-]+$/.test(l.slice(0,i)))H.push([l.slice(0,i),l.slice(i+1).trim()]);else if(!l.trim()&&H.length)break}}return H}
+function analyzeEmail(raw){const H=parseHeaders(raw);if(H.length<3||!H.some(h=>/^(from|received)$/i.test(h[0])))return{error:'Could not find email headers. Paste the full raw headers (Show original or View source), including From and Received lines.'};
+ const g=n=>H.filter(h=>h[0].toLowerCase()===n).map(h=>h[1]),one=n=>g(n)[0]||'',ad=s=>(s.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/)||[''])[0].toLowerCase(),dm=a=>a.split('@')[1]||'',f=[],ev=[],from=ad(one('from')),rp=ad(one('return-path')),rt=ad(one('reply-to')),mid=ad(one('message-id')),au=g('authentication-results').join(' ');
+ f.push({s:'confirmed',t:'Sender (From)',d:one('from')||'missing'});if(one('subject'))f.push({s:'confirmed',t:'Subject',d:one('subject')});
+ for(const k of['spf','dkim','dmarc']){const r=(au.match(new RegExp('\\b'+k+'=(\\w+)','i'))||[])[1];
+  if(!r)f.push({s:'info',t:k.toUpperCase()+' result',d:au?'Not present in Authentication-Results.':'No Authentication-Results header, so authentication could not be assessed.'});
+  else if(r.toLowerCase()==='pass')f.push({s:'confirmed',t:k.toUpperCase()+' pass',d:'The receiving server recorded '+k+'=pass.'});
+  else f.push({s:'suspicious',t:k.toUpperCase()+' '+r.toLowerCase(),d:'The receiving server recorded '+k+'='+r+'. Confirm the header was added by your own mail server.'})}
+ if(rp&&from&&dm(rp)!==dm(from))f.push({s:'suspicious',t:'Return-Path domain differs from From',d:dm(rp)+' vs '+dm(from)});
+ if(rt&&from&&dm(rt)!==dm(from))f.push({s:'suspicious',t:'Reply-To domain differs from From',d:dm(rt)+' vs '+dm(from)+'. Replies would go elsewhere.'});
+ if(mid&&from&&dm(mid)!==dm(from))f.push({s:'suspicious',t:'Message-ID domain differs from From',d:dm(mid)+' vs '+dm(from)+' (weak signal; bulk senders do this legitimately).'});
+ const hops=g('received').map(r=>({ip:(r.match(/\[(\d{1,3}(?:\.\d{1,3}){3})\]/)||r.match(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/)||[])[1]||'',t:Date.parse((r.split(';').pop()||'').trim())||null,by:(r.match(/\bby\s+([\w.-]+)/i)||[])[1]||''}));
+ hops.forEach((h,i)=>{f.push({s:'confirmed',t:'Received hop '+(hops.length-i),d:(h.ip||'no IP')+(h.by?' to '+h.by:'')+', '+(h.t?new Date(h.t).toISOString():'no timestamp')+' (as written; hops added outside your own servers can be forged)'});if(h.t)ev.push({t:h.t,label:'Mail hop '+(hops.length-i)+(h.ip?' '+h.ip:''),s:'confirmed',kind:'hop'})});
+ for(let i=0;i<hops.length-1;i++)if(hops[i].t&&hops[i+1].t&&hops[i+1].t>hops[i].t)f.push({s:'suspicious',t:'Received timestamps out of order',d:'Hop '+(hops.length-i-1)+' is later than hop '+(hops.length-i)});
+ const dt=Date.parse(one('date'));if(dt){ev.push({t:dt,label:'Date header',s:'confirmed',kind:'sent'});const ts=hops.filter(h=>h.t).map(h=>h.t);if(ts.length&&dt-Math.min(...ts)>36e5)f.push({s:'suspicious',t:'Date header is after delivery',d:'The Date header is over an hour later than the earliest hop.'})}
+ return{f,ev,ent:{from,rp,rt,origin:(hops[hops.length-1]||{}).ip||''}}}
+function extract(t){const u=a=>[...new Set(a)],m=r=>t.match(r)||[],emails=u(m(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g).map(s=>s.toLowerCase())),urls=u(m(/https?:\/\/[^\s<>"')]+/g)),ips=u(m(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g)).filter(ip=>ip.split('.').every(n=>+n<256)),hosts=urls.map(x=>{try{return new URL(x).hostname}catch(e){return''}}).filter(Boolean).concat(emails.map(e=>e.split('@')[1]));
+ return{emails,urls,ips,domains:u(hosts.filter(h=>!/^\d+\.\d+\.\d+\.\d+$/.test(h))),handles:u(m(/(?<![\w@.])@[A-Za-z0-9_]{3,30}\b/g)),phones:u(m(/\+\d[\d\s().-]{8,}\d/g)),hashes:u(m(/\b[a-f0-9]{32,64}\b/gi))}}
+const mask=s=>s.length<=8?'••••':s.slice(0,4)+'••••'+s.slice(-2);
+const SECRETS=[['AWS access key ID',/\bAKIA[0-9A-Z]{16}\b/,1],['Private key block',/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,1],['JWT',/\beyJ[\w-]{8,}\.[\w-]{8,}\.[\w-]{8,}\b/,1],['GitHub token',/\bgh[pousr]_[A-Za-z0-9]{36,}\b/,1],['Slack token',/\bxox[baprs]-[\w-]{10,}/,1],['Google API key',/\bAIza[0-9A-Za-z_-]{35}\b/,1],['Password assignment',/(?:password|passwd|pwd)\s*[:=]\s*\S{4,}/i,0],['Bearer token',/\bBearer\s+[\w.-]{20,}/,0]];
+function scanSecrets(t){return SECRETS.flatMap(([n,r,c])=>{const g=new RegExp(r.source,r.flags+'g'),o=[];let m;while((m=g.exec(t)))o.push({type:n,strict:c,line:t.slice(0,m.index).split('\n').length,masked:mask(m[0])});return o})}
+const COMMON=['password','123456','12345678','qwerty','letmein','admin','welcome','iloveyou','abc123','password1','winter2026!','changeme'];
+function pwLocal(p){let pool=0;if(/[a-z]/.test(p))pool+=26;if(/[A-Z]/.test(p))pool+=26;if(/\d/.test(p))pool+=10;if(/[^\w]/.test(p))pool+=32;const is=[];if(p.length<12)is.push('shorter than 12 characters');if(COMMON.includes(p.toLowerCase()))is.push('appears in a list of very common passwords');if(/(.)\1{2,}|0123|1234|abcd|qwer/i.test(p))is.push('contains a repeated or sequential pattern');return{bits:Math.round(p.length*Math.log2(pool||1)),is}}
+function metaScan(buf){const s=new TextDecoder('latin1').decode(new Uint8Array(buf).slice(0,4e6)),o=[],seen=new Set(),add=(sv,t,d)=>{if(!seen.has(t+d)){seen.add(t+d);o.push({s:sv,t,d})}};
+ for(const m of s.matchAll(/\/(Author|Creator|Producer|Title|CreationDate|ModDate)\s*\(([^)\r\n]{1,100})\)/g))add('confirmed','PDF field '+m[1],m[2]);
+ for(const m of s.matchAll(/[A-Za-z]:\\(?:Users|Documents and Settings)\\[^\\\0\r\n"<>|:*?]{1,40}/g))add('suspicious','Local Windows user path embedded',m[0]);
+ for(const m of s.matchAll(/\/(?:home|Users)\/[\w.-]{1,32}/g))add('suspicious','Local user path embedded',m[0]);
+ for(const m of s.matchAll(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g))add('suspicious','Email address embedded in file',m[0]);return o}
+async function zipRead(buf,name){const v=new DataView(buf),b=new Uint8Array(buf);let e=-1;for(let i=b.length-22;i>=Math.max(0,b.length-66000);i--)if(v.getUint32(i,true)===0x06054b50){e=i;break}if(e<0)return null;let p=v.getUint32(e+16,true);const n=v.getUint16(e+10,true);
+ for(let k=0;k<n;k++){if(v.getUint32(p,true)!==0x02014b50)break;const m=v.getUint16(p+10,true),cs=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),xl=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),off=v.getUint32(p+42,true),nm=new TextDecoder().decode(b.slice(p+46,p+46+nl));
+  if(nm===name){const lh=off+30+v.getUint16(off+26,true)+v.getUint16(off+28,true),d=b.slice(lh,lh+cs);if(m===0)return new TextDecoder().decode(d);return await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text()}p+=46+nl+xl+cl}return null}
+async function officeMeta(buf){const c=await zipRead(buf,'docProps/core.xml');if(c===null)return null;const a=(await zipRead(buf,'docProps/app.xml'))||'',tg=(x,t)=>(x.match(new RegExp('<'+t+'[^>]*>([^<]*)</'+t+'>'))||[])[1],o=[],f=(t,v)=>v&&o.push({s:'confirmed',t,d:v});
+ f('Author (creator)',tg(c,'dc:creator'));f('Last modified by',tg(c,'cp:lastModifiedBy'));f('Created',tg(c,'dcterms:created'));f('Modified',tg(c,'dcterms:modified'));f('Application',tg(a,'Application'));f('Company',tg(a,'Company'));return o}
+function tlAnoms(ev){const by={},o=[];ev.forEach(e=>{if(e.kind&&e.t)(by[e.src]=by[e.src]||{})[e.kind]=e.t});for(const[s,k]of Object.entries(by))if(k.created&&k.modified&&k.modified<k.created)o.push(s+': modified time is earlier than created time');return o}
+function layout(N,E,W,H){const P=N.map((n,i)=>({id:n.id,x:W/2+Math.cos(i/N.length*6.283)*W/3,y:H/2+Math.sin(i/N.length*6.283)*H/3})),I=Object.fromEntries(P.map(p=>[p.id,p]));
+ for(let it=0;it<80;it++){for(const a of P)for(const b of P)if(a!==b){const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy)||1,f=2500/(d*d);a.x+=dx/d*f;a.y+=dy/d*f}
+  for(const e of E){const a=I[e.a],b=I[e.b];if(!a||!b)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,f=(d-110)*.02;a.x+=dx/d*f;a.y+=dy/d*f;b.x-=dx/d*f;b.y-=dy/d*f}
+  for(const p of P){p.x+=(W/2-p.x)*.01;p.y+=(H/2-p.y)*.01;p.x=Math.max(30,Math.min(W-30,p.x));p.y=Math.max(30,Math.min(H-30,p.y))}}return I}
+/*ENDPURE*/
+/* ===== Cybersecurity modules ===== */
+const CASE={f:[],n:new Map(),e:[],ev:[]},fnd=(m,s,t,d)=>CASE.f.push({m,s,t,d}),clr=m=>{for(const k of['f','e','ev'])CASE[k]=CASE[k].filter(x=>x.m!==m)},addN=(id,type,label,s)=>{if(!CASE.n.has(id))CASE.n.set(id,{id,type,label,s})},addE=(m,a,b,label,s)=>CASE.e.push({m,a,b,label,s}),addV=(m,t,label,s,src,kind)=>CASE.ev.push({m,t,label,s,src,kind});
+const bd=s=>`<span class="bd ${s}">${{confirmed:'Confirmed',suspicious:'Suspicious',info:'Info',manual:'Analyst-entered'}[s]}</span>`,nid=(k,v)=>({emails:'m',domains:'d',ips:'ip'}[k]||k)+':'+v;
+const tbl=m=>{const r=CASE.f.filter(f=>f.m===m);return r.length?`<div class="wrap"><table><thead><tr><th>Status</th><th>Finding</th><th>Detail</th></tr></thead><tbody>${r.map(f=>`<tr><td>${bd(f.s)}</td><td>${esc(f.t)}</td><td>${esc(f.d)}</td></tr>`).join('')}</tbody></table></div><p class="note">${r.filter(f=>f.s==='confirmed').length} confirmed, ${r.filter(f=>f.s==='suspicious').length} suspicious.</p>`:'<p class="note">No findings.</p>'};
+const run=(id,fn)=>async(...a)=>{try{await fn(...a)}catch(e){$('#r-'+id).innerHTML=`<p class="flag">Error: ${esc(e.message||e)}</p>`}};
+const S_URL='https://www.paypal.com/signin\nhttp://paypa1-secure-login.verify-account.xyz/signin?session=8f2a\nhttps://accounts.google.com@203.0.113.50/login/update\nhttps://xn--pypal-4ve.example/account/verify\nhttps://bit.ly/3xYzAbC',
+S_MAIL=`Received: from mail-gw.corp-example.net (mail-gw.corp-example.net [198.51.100.25])
+ by mx.recipient-example.org with ESMTPS; Tue, 17 Nov 2026 09:14:07 +0000
+Received: from unknown (HELO bulkmailer01) ([203.0.113.77])
+ by mail-gw.corp-example.net with SMTP; Tue, 17 Nov 2026 09:14:02 +0000
+Authentication-Results: mx.recipient-example.org; spf=fail smtp.mailfrom=billing-desk@payroll-notice.example; dkim=none; dmarc=fail header.from=hr-payroll.example
+From: "HR Payroll" <hr-payroll@hr-payroll.example>
+Reply-To: <claims.help@mailbox-relay.example>
+Return-Path: <billing-desk@payroll-notice.example>
+Message-ID: <20261117091400.7731@bulkmailer01.local>
+Date: Tue, 17 Nov 2026 09:14:00 +0000
+Subject: Action required: confirm your salary details
+To: employee@recipient-example.org`,
+S_FOOT='Ticket 4471: user reported a message from hr-payroll@hr-payroll.example linking to https://hr-payroll.example/confirm?id=991. The same sender signature was seen on Telegram @payroll_helpdesk and phone +91 98765 43210. Source IP 203.0.113.77. Attachment hash d41d8cd98f00b204e9800998ecf8427e.',
+S_SEC='# deploy notes (synthetic)\nAWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\ndb_password = Winter2026!\nAuthorization: Bearer abcdefghijklmnopqrstuvwxyz012345',
+S_PDF=`%PDF-1.7\n/Author (R. Kulkarni)\n/Creator (Microsoft Word)\n/Producer (Microsoft Print to PDF)\n/CreationDate (D:20261103091500+05'30')\n/ModDate (D:20261103084200+05'30')\nC:\\Users\\rkulkarni\\Documents\\Q3_payroll_final.docx\ncontact: r.kulkarni@corp-example.net`;
+const TABS=[['media','Media forensics'],['url','URL scanner'],['mail','Email headers'],['foot','Footprint'],['meta','Hidden metadata'],['map','Connection map'],['time','Timeline'],['cred','Credentials'],['ai','Assistant']],
+LEG='<p class="note">'+bd('confirmed')+' read directly from data you supplied. '+bd('suspicious')+' a pattern that needs a human check. All analysis runs in this browser tab and nothing is uploaded.</p>',
+PN=(id,h,intro,body)=>`<div class="panel" id="p-${id}" hidden><section><h2>${h}</h2><p class="lead" style="margin:0 0 8px">${intro}</p>${LEG}${body}<div id="r-${id}"></div></section></div>`,
+BT=(id,go,sample)=>`<p><button id="b-${id}">${go}</button> ${sample?`<button class="alt" id="s-${id}">Load synthetic sample</button>`:''}</p>`;
+$('#mods').innerHTML=[
+PN('url','URL scanner','Breaks a link into parts and checks it for look-alike and disguise tricks.',`<textarea id="i-url" placeholder="One URL per line"></textarea>${BT('url','Scan URLs',1)}<p class="note">No reputation feed is queried, so a URL with no indicators is not proven safe.</p>`),
+PN('mail','Email header forensics','Reads raw headers: sender consistency, authentication results and the delivery path.',`<textarea id="i-mail" placeholder="Paste the full raw headers"></textarea>${BT('mail','Analyze headers',1)}`),
+PN('foot','Digital footprint','Pulls emails, domains, IPs, handles, phones and hashes out of any text, then lists manual open-source lookups. Links open only when you click them and tell that site what you searched.',`<textarea id="i-foot" placeholder="Paste a report, ticket or chat export"></textarea>${BT('foot','Extract entities',1)}`),
+PN('meta','Hidden metadata','Reads authors, software, dates, embedded paths and emails from a file. Office files (docx, xlsx, pptx) are unzipped in your browser; PDFs and other files are scanned for readable fields.',`<p><input type="file" id="i-meta"> <button class="alt" id="s-meta">Scan synthetic sample PDF</button></p>`),
+PN('map','Connection map','Entities from every module, joined by links. Green links were read from data, red links are suspicious, dashed links were entered by you.',`<svg class="g" id="svg" viewBox="0 0 700 420" role="img" aria-label="Relationship graph"></svg><p class="note" id="mapnote"></p><div id="mapd"></div><p class="row noprint"><input type="text" id="mn-a" placeholder="From entity"><input type="text" id="mn-b" placeholder="To entity"><input type="text" id="mn-l" placeholder="How they are linked"><button id="b-map">Add link</button></p>`),
+PN('time','Smart incident timeline','Merges dated events from every module and your analysis history, and flags impossible orderings.',`<p class="row noprint"><input type="datetime-local" id="t-d"><input type="text" id="t-l" placeholder="Event you want to record"><button id="b-time">Add event</button></p><div id="tl"></div>`),
+PN('cred','Credential exposure checker','Tests a password and scans text for leaked keys. Secrets are masked and never stored.',`<p class="row"><input type="password" id="i-pw" autocomplete="off" placeholder="Password to test"><button id="b-pw">Check password</button></p><label class="note"><input type="checkbox" id="c-hibp"> Also check the free Pwned Passwords list. Only the first 5 characters of the password’s SHA-1 hash leave this tab.</label><textarea id="i-sec" placeholder="Paste logs, config or code to scan for exposed secrets" style="margin-top:10px"></textarea>${BT('sec','Scan for secrets',1)}`),
+PN('ai','Investigation assistant','A local, rule-based assistant. It is not a language model and only restates findings already recorded in this case.',`<p class="noprint"><button class="alt" data-q="summary">Summary</button> <button class="alt" data-q="confirmed findings">Confirmed</button> <button class="alt" data-q="suspicious findings">Suspicious</button> <button class="alt" data-q="next steps">Next steps</button> <button class="alt" data-q="timeline">Timeline</button> <button class="alt" data-q="connections">Connections</button></p><p class="row noprint"><input type="text" id="i-ai" placeholder="Ask about this case"><button id="b-ai">Ask</button></p><div class="chat" id="chat"></div>`)].join('');
+$('#tabs').innerHTML=TABS.map(([k,n])=>`<button data-k="${k}" aria-pressed="${k==='media'}">${n}</button>`).join('');
+function show(k){TABS.forEach(([t])=>{$('#p-'+t).hidden=t!==k});document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));if(k==='map')drawMap();if(k==='time')drawTime()}
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.k)};
+/* URL */
+$('#s-url').onclick=()=>$('#i-url').value=S_URL;
+$('#b-url').onclick=run('url',async()=>{const L=$('#i-url').value.split('\n').map(s=>s.trim()).filter(Boolean);if(!L.length)throw new Error('Paste at least one URL.');if(L.length>200)throw new Error('Limit is 200 URLs per scan.');clr('URL');addN('doc:urls','source','URL list','confirmed');
+ for(const u of L){const r=scanUrl(u);if(r.error){fnd('URL','info',u.slice(0,60),r.error);continue}fnd('URL','confirmed',r.host,'Parsed: '+r.facts.map(f=>f.join(' ')).join('; '));r.sus.forEach(x=>fnd('URL','suspicious',r.host,x));addN('d:'+r.host,'domain',r.host,r.sus.length?'suspicious':'confirmed');addE('URL','doc:urls','d:'+r.host,'contains',r.sus.length?'suspicious':'confirmed')}
+ await log('MODULE','URL scan, '+L.length+' URL(s)');$('#r-url').innerHTML=tbl('URL')});
+/* Email */
+$('#s-mail').onclick=()=>$('#i-mail').value=S_MAIL;
+$('#b-mail').onclick=run('mail',async()=>{const r=analyzeEmail($('#i-mail').value);if(r.error)throw new Error(r.error);clr('Mail');r.f.forEach(x=>fnd('Mail',x.s,x.t,x.d));r.ev.forEach(e=>addV('Mail',e.t,e.label,e.s,'Email',e.kind));const a=r.ent,dm=x=>x.split('@')[1];
+ if(a.from){addN('m:'+a.from,'email',a.from,'confirmed');addN('d:'+dm(a.from),'domain',dm(a.from),'confirmed');addE('Mail','m:'+a.from,'d:'+dm(a.from),'domain of','confirmed')}
+ [a.rp,a.rt].forEach((x,i)=>{if(x&&a.from){addN('m:'+x,'email',x,'suspicious');addE('Mail','m:'+a.from,'m:'+x,['Return-Path','Reply-To'][i],dm(x)!==dm(a.from)?'suspicious':'confirmed')}});
+ if(a.origin&&a.from){addN('ip:'+a.origin,'ip',a.origin,'confirmed');addE('Mail','m:'+a.from,'ip:'+a.origin,'earliest Received hop','confirmed')}
+ await log('MODULE','Email header analysis');$('#r-mail').innerHTML=tbl('Mail')});
+/* Footprint */
+$('#s-foot').onclick=()=>$('#i-foot').value=S_FOOT;
+$('#b-foot').onclick=run('foot',async()=>{const t=$('#i-foot').value;if(t.trim().length<5)throw new Error('Paste some text, such as a report, ticket or chat export.');const x=extract(t),rows=[];clr('Foot');addN('doc:foot','source','Footprint text','confirmed');
+ const lk=(h,l)=>`<a href="${h}" target="_blank" rel="noopener noreferrer">${l}</a>`;
+ for(const[k,arr]of Object.entries(x))for(const v of arr){const e=encodeURIComponent(v);fnd('Foot','confirmed',k.replace(/s$/,''),v);addN(nid(k,v),k.replace(/s$/,''),v,'confirmed');addE('Foot','doc:foot',nid(k,v),'mentions','confirmed');rows.push(`<tr><td>${bd('confirmed')}</td><td>${k.replace(/s$/,'')}</td><td class="h">${esc(v)}</td><td>${k==='domains'?lk('https://crt.sh/?q='+e,'certificates')+' '+lk('https://who.is/whois/'+e,'whois'):k==='ips'?lk('https://ipinfo.io/'+e,'IP info'):''}</td></tr>`)}
+ if(!rows.length)throw new Error('No emails, IPs, URLs, handles, domains, phones or hashes found in that text.');
+ await log('MODULE','Footprint extraction, '+rows.length+' entities');$('#r-foot').innerHTML=`<div class="wrap"><table><thead><tr><th>Status</th><th>Type</th><th>Value</th><th>Manual lookups</th></tr></thead><tbody>${rows.join('')}</tbody></table></div><p class="note">“Confirmed” means the value appears in your text. It says nothing about who owns it.</p>`});
+/* Metadata */
+const pd=v=>Date.parse(v.replace(/^D:(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d).*/,'$1-$2-$3T$4:$5:$6Z'));
+async function doMeta(buf,name){clr('Meta');let o=[];try{o=(await officeMeta(buf))||[]}catch(e){}o=o.concat(metaScan(buf));if(!o.length)fnd('Meta','info',name,'No embedded author, path or email metadata found. Absence is not proof of a clean file.');
+ addN('f:'+name,'file',name,'confirmed');
+ o.forEach(x=>{fnd('Meta',x.s,x.t,x.d);if(/Author|Last modified by|Creator$/.test(x.t)&&!/Word|Print/.test(x.d)){addN('p:'+x.d,'person',x.d,'confirmed');addE('Meta','p:'+x.d,'f:'+name,x.t,'confirmed')}if(/^Email/.test(x.t)){addN('m:'+x.d,'email',x.d,'suspicious');addE('Meta','f:'+name,'m:'+x.d,'embeds','confirmed')}
+  const k=/Created|CreationDate/.test(x.t)?'created':/Modified$|ModDate/.test(x.t)?'modified':'';if(k&&!isNaN(pd(x.d)))addV('Meta',pd(x.d),(k==='created'?'File created: ':'File modified: ')+name,'confirmed',name,k)});
+ await log('MODULE','Metadata scan, '+buf.byteLength+' bytes');$('#r-meta').innerHTML=tbl('Meta')}
+$('#s-meta').onclick=run('meta',()=>doMeta(new TextEncoder().encode(S_PDF).buffer,'sample_report.pdf'));
+$('#i-meta').onchange=run('meta',async e=>{const f=e.target.files[0];if(!f)return;if(f.size>5e7)throw new Error('File is over 50 MB.');await doMeta(await f.arrayBuffer(),f.name)});
+/* Map */
+let POS={},DRAG=null,MOVED=false;const svg=$('#svg');
+function drawMap(){const used=new Set();CASE.e.forEach(e=>{used.add(e.a);used.add(e.b)});const N=[...used].map(i=>CASE.n.get(i)).filter(Boolean);
+ if(!N.length){svg.innerHTML='';$('#mapnote').textContent='No connections yet. Run other modules or add a link below.';return}
+ $('#mapnote').textContent=N.length+' entities, '+CASE.e.length+' links. Drag to rearrange, click an entity for details.';if(N.some(n=>!POS[n.id]))POS=layout(N,CASE.e,700,420);
+ const col=s=>s==='suspicious'?'var(--flag)':s==='confirmed'?'var(--ok)':'var(--mute)';
+ svg.innerHTML=CASE.e.filter(e=>POS[e.a]&&POS[e.b]).map(e=>`<line x1="${POS[e.a].x}" y1="${POS[e.a].y}" x2="${POS[e.b].x}" y2="${POS[e.b].y}" stroke="${col(e.s)}" stroke-width="2" ${e.s==='manual'?'stroke-dasharray="5 4"':''}><title>${esc(e.label)} (${e.s})</title></line>`).join('')+N.map(n=>{const p=POS[n.id];return`<g data-id="${esc(n.id)}" style="cursor:grab"><circle cx="${p.x}" cy="${p.y}" r="13" fill="var(--card)" stroke="${col(n.s)}" stroke-width="3"/><text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="11" fill="var(--ink)">${esc(n.type[0].toUpperCase())}</text><text x="${p.x}" y="${p.y+28}" text-anchor="middle" font-size="11" fill="var(--ink)">${esc(n.label.slice(0,26))}</text></g>`}).join('')}
+function detail(id){const n=CASE.n.get(id);if(!n)return;$('#mapd').innerHTML=`<p><b>${esc(n.label)}</b> (${esc(n.type)}) ${bd(n.s)}</p><ul>${CASE.e.filter(e=>e.a===id||e.b===id).map(e=>{const o=CASE.n.get(e.a===id?e.b:e.a);return`<li>${esc(e.label)}: ${esc(o?o.label:'')} ${bd(e.s)} <span class="note">from ${esc(e.m)}</span></li>`}).join('')}</ul>`}
+svg.onpointerdown=e=>{const g=e.target.closest('g');if(!g)return;DRAG=g.dataset.id;MOVED=false;svg.setPointerCapture(e.pointerId)};
+svg.onpointermove=e=>{if(!DRAG)return;const r=svg.getBoundingClientRect();POS[DRAG]={id:DRAG,x:Math.max(15,Math.min(685,(e.clientX-r.left)/r.width*700)),y:Math.max(15,Math.min(405,(e.clientY-r.top)/r.height*420))};MOVED=true;drawMap()};
+svg.onpointerup=()=>{if(DRAG&&!MOVED)detail(DRAG);DRAG=null};
+$('#b-map').onclick=run('map',async()=>{const a=$('#mn-a').value.trim(),b=$('#mn-b').value.trim(),l=$('#mn-l').value.trim();if(!a||!b||!l)throw new Error('Fill in both entities and describe the link.');const id=x=>([...CASE.n.values()].find(n=>n.label===x)||{}).id;for(const x of[a,b])if(!id(x))addN('x:'+x,'manual',x,'manual');addE('Manual',id(a),id(b),l,'manual');await log('MODULE','Analyst added a manual link');$('#r-map').innerHTML='';drawMap()});
+/* Timeline */
+function drawTime(){const an=tlAnoms(CASE.ev),L=ledger.map(l=>({t:Date.parse(l.t.replace(' ','T')+'Z'),label:l.action+': '+l.detail,s:'info',src:'Analysis history'})),all=CASE.ev.map(e=>({...e,src:e.src})).concat(L).filter(e=>e.t).sort((a,b)=>a.t-b.t);
+ $('#tl').innerHTML=(an.length?`<p>${an.map(a=>bd('suspicious')+' '+esc(a)).join('<br>')}</p>`:'')+(all.length?`<div class="wrap"><table><thead><tr><th>Time (UTC)</th><th>Status</th><th>Event</th><th>Source</th></tr></thead><tbody>${all.map(e=>`<tr><td class="h">${new Date(e.t).toISOString().slice(0,19).replace('T',' ')}</td><td>${bd(e.s)}</td><td>${esc(e.label)}</td><td>${esc(e.src||e.m)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="note">No dated events yet.</p>')}
+$('#b-time').onclick=run('time',async()=>{const t=Date.parse($('#t-d').value+'Z'),l=$('#t-l').value.trim();if(isNaN(t)||!l)throw new Error('Choose a date and time (UTC) and describe the event.');addV('Manual',t,l,'manual','Analyst','');await log('MODULE','Analyst added a timeline event');drawTime()});
+/* Credentials */
+$('#s-sec').onclick=()=>$('#i-sec').value=S_SEC;
+$('#b-pw').onclick=run('cred',async()=>{const p=$('#i-pw').value;if(!p)throw new Error('Type a password to test.');const r=pwLocal(p);clr('Cred');
+ fnd('Cred','info','Local strength estimate','About '+r.bits+' bits at most (an upper bound that assumes random characters).');r.is.forEach(x=>fnd('Cred','suspicious','Weakness',x.charAt(0).toUpperCase()+x.slice(1)));
+ if($('#c-hibp').checked){try{const h=[...new Uint8Array(await crypto.subtle.digest('SHA-1',new TextEncoder().encode(p)))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase(),c=new AbortController(),tm=setTimeout(()=>c.abort(),8000),res=await fetch('https://api.pwnedpasswords.com/range/'+h.slice(0,5),{headers:{'Add-Padding':'true'},signal:c.signal});clearTimeout(tm);if(!res.ok)throw new Error('HTTP '+res.status);
+  const hit=(await res.text()).split('\n').map(l=>l.trim().split(':')).find(x=>x[0]===h.slice(5));hit&&+hit[1]>0?fnd('Cred','confirmed','Found in known breaches','Seen '+(+hit[1]).toLocaleString()+' times in the Pwned Passwords list. Do not use this password.'):fnd('Cred','info','Not in Pwned Passwords','Not found in that list. This does not make the password safe.')}
+  catch(e){fnd('Cred','info','Breach lookup unavailable','The online check could not complete (offline or blocked by this viewer). Local checks still apply.')}}
+ $('#i-pw').value='';await log('MODULE','Password check completed (value not stored)');$('#r-cred').innerHTML=tbl('Cred')});
+$('#b-sec').onclick=run('cred',async()=>{const t=$('#i-sec').value;if(!t.trim())throw new Error('Paste some text to scan.');const h=scanSecrets(t);clr('Secrets');
+ if(!h.length)fnd('Secrets','info','No credential formats found','Absence of a match does not prove the text is free of secrets.');h.forEach(x=>{fnd('Secrets',x.strict?'confirmed':'suspicious',x.type,'Line '+x.line+', masked: '+x.masked+(x.strict?'. Exact format match; validity not tested. Treat as exposed and rotate.':'. Loose match, may be a placeholder.'))});
+ await log('MODULE','Secret scan, '+h.length+' match(es)');$('#r-cred').innerHTML=tbl('Secrets')});
+/* Assistant */
+function answer(q){const all=CASE.f.concat(F.map(x=>({m:'Media '+x.modality,s:x.flagged?'suspicious':'info',t:x.indicator,d:x.why}))),w=q.toLowerCase();if(!all.length)return'No findings recorded yet. Run at least one module, then ask again.';
+ const c=all.filter(f=>f.s==='confirmed'),s=all.filter(f=>f.s==='suspicious'),ls=a=>a.slice(0,15).map(f=>'• ['+f.m+'] '+f.t+': '+f.d).join('\n')+(a.length>15?'\n…and '+(a.length-15)+' more':'');
+ const mods=[...new Set(all.map(f=>f.m))];
+ if(/confirm/.test(w))return c.length?c.length+' confirmed finding(s). Confirmed means the value is present in the data you supplied; it does not prove intent.\n'+ls(c):'Nothing is confirmed yet.';
+ if(/suspic|risk|threat|bad/.test(w))return s.length?s.length+' suspicious indicator(s), each needing human review:\n'+ls(s):'No suspicious indicators recorded.';
+ if(/next|step|recommend|do/.test(w)){const T={URL:'Check flagged URLs in a sandbox or reputation service before opening.',Mail:'Compare headers with your own mail server logs; hops outside your servers can be forged.',Meta:'Confirm embedded authors and paths with the document owner.',Cred:'Rotate any exposed credential and treat it as compromised.',Secrets:'Rotate any exposed credential and treat it as compromised.',Foot:'Review entities with manual open-source lookups.'};
+  const st=[...new Set(s.map(f=>f.m.startsWith('Media')?'Repeat flagged media checks with specialist tools.':T[f.m]).filter(Boolean))];return st.length?'Suggested next steps from current suspicious findings:\n'+st.map(x=>'• '+x).join('\n'):'No suspicious findings, so no module-specific steps. Consider adding more evidence.'}
+ if(/time|when|date/.test(w)){const e=CASE.ev.filter(x=>x.t);return e.length?e.length+' dated event(s), from '+new Date(Math.min(...e.map(x=>x.t))).toISOString()+' to '+new Date(Math.max(...e.map(x=>x.t))).toISOString()+'.'+(tlAnoms(CASE.ev).length?'\nAnomalies: '+tlAnoms(CASE.ev).join('; '):''):'No dated events recorded.'}
+ if(/connect|link|who|entit|graph|relat/.test(w)){const sl=CASE.e.filter(e=>e.s==='suspicious');return CASE.e.length+' link(s) across '+new Set(CASE.e.flatMap(e=>[e.a,e.b])).size+' entities; '+sl.length+' suspicious.'+(sl.length?'\n'+sl.map(e=>'• '+(CASE.n.get(e.a)||{}).label+' ('+e.label+') '+(CASE.n.get(e.b)||{}).label).join('\n'):'')}
+ return'Case summary: '+all.length+' finding(s) across '+mods.join(', ')+'. '+c.length+' confirmed, '+s.length+' suspicious. Ask about confirmed findings, suspicious findings, next steps, the timeline or connections.'}
+function ask(q){q=q.trim();if(!q)return;$('#chat').insertAdjacentHTML('beforeend',`<p class="me">${esc(q)}</p><p>${esc(answer(q))}</p>`);$('#i-ai').value=''}
+$('#b-ai').onclick=run('ai',()=>ask($('#i-ai').value));$('#i-ai').onkeydown=e=>{if(e.key==='Enter')ask(e.target.value)};document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>ask(b.dataset.q));
+</script></body></html>
